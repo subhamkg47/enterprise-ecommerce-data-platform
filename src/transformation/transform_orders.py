@@ -1,6 +1,3 @@
-import csv
-
-
 PRODUCT_PRICES = {
     101: 499.00,
     102: 2499.00,
@@ -20,6 +17,7 @@ def transform_orders(orders):
 
         transformed_order = {
             **order,
+            "order_item_id": len(transformed_orders) + 1,
             "unit_price": unit_price,
             "line_amount": line_amount,
         }
@@ -30,7 +28,10 @@ def transform_orders(orders):
 
 
 def save_orders(orders, file_path):
+    import csv
+
     fieldnames = [
+        "order_item_id",
         "order_id",
         "customer_id",
         "product_id",

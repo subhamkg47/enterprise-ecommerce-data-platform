@@ -4,8 +4,10 @@ from src.transformation.transform_orders import (
     transform_orders,
     save_orders,
 )
-
-
+from src.loading.load_to_database import (
+    load_orders_to_database,
+    count_order_items,
+)
 def run_pipeline():
     orders = load_orders("data/raw/orders.csv")
 
@@ -18,10 +20,20 @@ def run_pipeline():
         "data/processed/orders_processed.csv"
     )
 
+    load_orders_to_database(
+        "data/processed/orders_processed.csv",
+        "data/ecommerce.db"
+    )
+
+    database_count = count_order_items("data/ecommerce.db")
+    print(f"Database order items: {database_count}")
+
     print(f"Loaded orders: {len(orders)}")
     print(f"Valid orders: {len(valid_orders)}")
     print(f"Transformed orders: {len(transformed_orders)}")
     print("Processed data saved successfully.")
+    print("Data loaded into SQLite successfully.")
+
 
 
 if __name__ == "__main__":
