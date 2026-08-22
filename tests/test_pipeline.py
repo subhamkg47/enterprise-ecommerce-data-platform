@@ -5,6 +5,7 @@ from src.loading.load_to_database import (
     load_orders_to_database,
     count_order_items,
 )
+from src.analytics.revenue import get_customer_revenue
 
 def test_validate_orders_removes_invalid_quantity():
     orders = [
@@ -78,3 +79,53 @@ def test_load_orders_to_database(tmp_path):
     )
 
     assert count_order_items(str(database_file)) == 1
+
+
+
+def test_get_customer_revenue(tmp_path):
+    database_file = tmp_path / "test.db"
+
+    connection = sqlite3.connect(database_file)
+
+    connection.execute(
+        """
+        CREATE TABLE customers (
+            customer_id INTEGER PRIMARY KEY,
+            first_name VARCHAR(100) NOT NULL,
+            last_name VARCHAR(100) NOT NULL
+        )
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE orders (
+            order_id INTEGER PRIMARY KEY,
+            customer_id INTEGER NOT NULL,
+            total_amount DECIMAL(10, 2) NOT NULL
+        )
+        """
+    )
+
+    connection.execute(
+        "INSERT INTO customers VALUES (1, 'Test', 'User')"
+    )
+
+    connection.execute(
+        "INSERT INTO orders VALUES (1001, 1, 1000.0)"
+    )
+
+    connection.execute(
+        "INSERT INTO orders VALUES (1002, 1, 500.0)"
+    )
+
+    connection.commit()
+    connection.close()
+
+    results = get_customer_revenue(str(database_file))
+
+    assert len(results) == 1
+    assert results[0][0] == 1
+    assert results[0][1] == "Test User"
+    assert results[0][2] == 2
+    assert results[0][3] == 1500.0

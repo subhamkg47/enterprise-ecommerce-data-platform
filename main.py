@@ -6,6 +6,7 @@ from src.transformation.transform_orders import (
 )
 from src.loading.load_to_database import (
     load_orders_to_database,
+    load_orders_table,
     count_order_items,
 )
 def run_pipeline():
@@ -20,9 +21,15 @@ def run_pipeline():
         "data/processed/orders_processed.csv"
     )
 
+   
     load_orders_to_database(
-        "data/processed/orders_processed.csv",
-        "data/ecommerce.db"
+      "data/processed/orders_processed.csv",
+      "data/ecommerce.db"
+    )
+
+    load_orders_table(
+    valid_orders,
+    "data/ecommerce.db"
     )
 
     database_count = count_order_items("data/ecommerce.db")
