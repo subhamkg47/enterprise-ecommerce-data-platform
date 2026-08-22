@@ -9,6 +9,9 @@ from src.loading.load_to_database import (
     load_orders_table,
     count_order_items,
 )
+from src.analytics.revenue import generate_revenue_report
+
+
 def run_pipeline():
     orders = load_orders("data/raw/orders.csv")
 
@@ -31,6 +34,13 @@ def run_pipeline():
     valid_orders,
     "data/ecommerce.db"
     )
+
+    generate_revenue_report(
+    "data/ecommerce.db",
+    "reports/revenue_report.txt"
+    )
+
+    print("Revenue report generated successfully.")
 
     database_count = count_order_items("data/ecommerce.db")
     print(f"Database order items: {database_count}")

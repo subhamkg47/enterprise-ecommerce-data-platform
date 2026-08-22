@@ -1,0 +1,19 @@
+E-COMMERCE REVENUE REPORT
+=========================
+
+SUMMARY
+-------
+Total Orders: 4
+Total Revenue: 5192.00
+Average Order Value: 1298.00
+
+CUSTOMER REVENUE
+----------------
+1 | Shubham Gupta | Orders: 2 | Spent: 3796.00
+2 | Aarav Sharma | Orders: 2 | Spent: 1396.00
+
+PRODUCT REVENUE
+----------------
+102 | Mechanical Keyboard | Units Sold: 1 | Revenue: 2499.00
+101 | Wireless Mouse | Units Sold: 3 | Revenue: 1497.00
+103 | USB-C Cable | Units Sold: 4 | Revenue: 1196.00
