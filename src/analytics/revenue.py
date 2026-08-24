@@ -1,3 +1,4 @@
+from src.config.settings import REVENUE_REPORT_FILE
 import sqlite3
 
 
@@ -119,3 +120,9 @@ def generate_revenue_report(database_file, output_file):
                 f"Units Sold: {units_sold} | "
                 f"Revenue: {total_revenue:.2f}\n"
             )
+
+def generate_default_revenue_report(database_file):
+    generate_revenue_report(
+        database_file,
+        str(REVENUE_REPORT_FILE),
+    )

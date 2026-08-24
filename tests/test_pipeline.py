@@ -1,3 +1,9 @@
+from src.config.settings import (
+    DATABASE_FILE,
+    ORDERS_RAW_FILE,
+    ORDERS_PROCESSED_FILE,
+    REVENUE_REPORT_FILE,
+)
 from src.ingestion.validate_orders import validate_orders
 from src.transformation.transform_orders import transform_orders
 import sqlite3
@@ -304,3 +310,15 @@ def test_generate_revenue_report(tmp_path):
     assert "Average Order Value: 1000.00" in report
     assert "Test User" in report
     assert "Test Product" in report
+
+
+def test_configuration_paths():
+    assert DATABASE_FILE.suffix == ".db"
+    assert ORDERS_RAW_FILE.name == "orders.csv"
+    assert ORDERS_PROCESSED_FILE.name == "orders_processed.csv"
+    assert REVENUE_REPORT_FILE.name == "revenue_report.txt"
+
+    assert DATABASE_FILE.parent.name == "data"
+    assert ORDERS_RAW_FILE.parent.name == "raw"
+    assert ORDERS_PROCESSED_FILE.parent.name == "processed"
+    assert REVENUE_REPORT_FILE.parent.name == "reports"
