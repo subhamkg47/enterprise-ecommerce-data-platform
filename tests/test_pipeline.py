@@ -23,6 +23,11 @@ from src.pipeline.context import (
     PipelineContext,
     create_pipeline_context,
 )
+from src.pipeline.stages import (
+    run_ingestion,
+    run_validation,
+    run_transformation,
+)
 
 
 def test_validate_orders_removes_invalid_quantity():
@@ -356,3 +361,62 @@ def test_create_pipeline_context():
     assert context.processed_orders_file.parent.exists()
     assert context.database_file.parent.exists()
     assert context.revenue_report_file.parent.exists()
+
+
+
+def test_run_ingestion():
+    context = create_pipeline_context()
+
+    orders = run_ingestion(context)
+
+    assert len(orders) == 5
+    assert all("order_id" in order for order in orders)
+
+
+def test_run_validation():
+    orders = [
+        {
+            "order_id": 1,
+            "customer_id": 1,
+            "product_id": 101,
+            "quantity": 2,
+        },
+        {
+            "order_id": 2,
+            "customer_id": 1,
+            "product_id": 101,
+            "quantity": -1,
+        },
+    ]
+
+    valid_orders = run_validation(orders)
+
+    assert len(valid_orders) == 1
+    assert valid_orders[0]["order_id"] == 1
+
+
+def test_run_transformation(tmp_path):
+    context = PipelineContext(
+        raw_orders_file=Path("data/raw/orders.csv"),
+        processed_orders_file=tmp_path / "orders_processed.csv",
+        database_file=Path("data/ecommerce.db"),
+        revenue_report_file=Path("reports/revenue_report.txt"),
+    )
+
+    orders = [
+        {
+            "order_id": 1,
+            "customer_id": 1,
+            "product_id": 101,
+            "quantity": 2,
+        }
+    ]
+
+    transformed_orders = run_transformation(
+        orders,
+        context,
+    )
+
+    assert len(transformed_orders) == 1
+    assert transformed_orders[0]["line_amount"] == 998.00
+    assert context.processed_orders_file.exists()
