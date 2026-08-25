@@ -28,6 +28,7 @@ from src.pipeline.stages import (
     run_validation,
     run_transformation,
 )
+from src.pipeline.result import StageResult
 
 
 def test_validate_orders_removes_invalid_quantity():
@@ -367,9 +368,11 @@ def test_create_pipeline_context():
 def test_run_ingestion():
     context = create_pipeline_context()
 
-    orders = run_ingestion(context)
+    orders, result = run_ingestion(context)
 
     assert len(orders) == 5
+    assert result.status == "success"
+    assert result.records_processed == 5
     assert all("order_id" in order for order in orders)
 
 
@@ -389,9 +392,12 @@ def test_run_validation():
         },
     ]
 
-    valid_orders = run_validation(orders)
+    valid_orders, result = run_validation(orders)
 
     assert len(valid_orders) == 1
+    assert result.status == "success"
+    assert result.records_processed == 1
+    assert result.records_rejected == 1
     assert valid_orders[0]["order_id"] == 1
 
 
@@ -411,12 +417,29 @@ def test_run_transformation(tmp_path):
             "quantity": 2,
         }
     ]
-
-    transformed_orders = run_transformation(
+    transformed_orders, result = run_transformation(
         orders,
         context,
     )
 
     assert len(transformed_orders) == 1
+    assert result.status == "success"
+    assert result.records_processed == 1
+
     assert transformed_orders[0]["line_amount"] == 998.00
     assert context.processed_orders_file.exists()
+
+
+def test_stage_result():
+    result = StageResult(
+        stage_name="validation",
+        status="success",
+        records_processed=5,
+        records_rejected=1,
+    )
+
+    assert result.stage_name == "validation"
+    assert result.status == "success"
+    assert result.records_processed == 5
+    assert result.records_rejected == 1
+    assert result.error == ""

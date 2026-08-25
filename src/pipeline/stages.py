@@ -1,4 +1,5 @@
 from src.pipeline.context import PipelineContext
+from src.pipeline.result import StageResult
 
 from src.ingestion.load_orders import load_orders
 from src.ingestion.validate_orders import validate_orders
@@ -19,15 +20,26 @@ def run_ingestion(context: PipelineContext):
 
     print(f"Loaded orders: {len(orders)}")
 
-    return orders
+    return orders, StageResult(
+        stage_name="ingestion",
+        status="success",
+        records_processed=len(orders),
+    )
 
 
 def run_validation(orders):
     valid_orders = validate_orders(orders)
 
+    rejected_orders = len(orders) - len(valid_orders)
+
     print(f"Valid orders: {len(valid_orders)}")
 
-    return valid_orders
+    return valid_orders, StageResult(
+        stage_name="validation",
+        status="success",
+        records_processed=len(valid_orders),
+        records_rejected=rejected_orders,
+    )
 
 
 def run_transformation(
@@ -45,7 +57,11 @@ def run_transformation(
 
     print("Processed data saved successfully.")
 
-    return transformed_orders
+    return transformed_orders, StageResult(
+        stage_name="transformation",
+        status="success",
+        records_processed=len(transformed_orders),
+    )
 
 
 def run_database_loading(
@@ -68,6 +84,12 @@ def run_database_loading(
         str(context.database_file),
     )
 
+    return StageResult(
+        stage_name="database_loading",
+        status="success",
+        records_processed=database_count,
+    )
+
 
 def run_analytics(context: PipelineContext):
     generate_revenue_report(
@@ -76,3 +98,12 @@ def run_analytics(context: PipelineContext):
     )
 
     print("Revenue report generated successfully.")
+
+    return StageResult(
+        stage_name="analytics",
+        status="success",
+        records_processed=1,
+        metadata={
+            "report_file": str(context.revenue_report_file),
+        },
+    )
