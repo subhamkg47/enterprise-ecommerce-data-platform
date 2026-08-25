@@ -17,6 +17,12 @@ from src.analytics.revenue import (
     get_revenue_summary,
     generate_revenue_report,
 )
+from pathlib import Path
+
+from src.pipeline.context import (
+    PipelineContext,
+    create_pipeline_context,
+)
 
 
 def test_validate_orders_removes_invalid_quantity():
@@ -322,3 +328,31 @@ def test_configuration_paths():
     assert ORDERS_RAW_FILE.parent.name == "raw"
     assert ORDERS_PROCESSED_FILE.parent.name == "processed"
     assert REVENUE_REPORT_FILE.parent.name == "reports"
+
+
+
+def test_pipeline_context():
+    context = PipelineContext(
+        raw_orders_file=Path("data/raw/orders.csv"),
+        processed_orders_file=Path("data/processed/orders_processed.csv"),
+        database_file=Path("data/ecommerce.db"),
+        revenue_report_file=Path("reports/revenue_report.txt"),
+    )
+
+    assert context.raw_orders_file == Path("data/raw/orders.csv")
+    assert context.processed_orders_file == Path(
+        "data/processed/orders_processed.csv"
+    )
+    assert context.database_file == Path("data/ecommerce.db")
+    assert context.revenue_report_file == Path(
+        "reports/revenue_report.txt"
+    )
+
+
+def test_create_pipeline_context():
+    context = create_pipeline_context()
+
+    assert context.raw_orders_file.exists()
+    assert context.processed_orders_file.parent.exists()
+    assert context.database_file.parent.exists()
+    assert context.revenue_report_file.parent.exists()

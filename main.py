@@ -1,10 +1,7 @@
-from src.config.settings import (
-    DATABASE_FILE,
-    ORDERS_RAW_FILE,
-    ORDERS_PROCESSED_FILE,
-    REVENUE_REPORT_FILE,
+from src.pipeline.context import (
+    PipelineContext,
+    create_pipeline_context,
 )
-
 from src.ingestion.load_orders import load_orders
 from src.ingestion.validate_orders import validate_orders
 from src.transformation.transform_orders import transform_orders, save_orders
@@ -16,8 +13,8 @@ from src.loading.load_to_database import (
 from src.analytics.revenue import generate_revenue_report
 
 
-def run_pipeline():
-    orders = load_orders(str(ORDERS_RAW_FILE))
+def run_pipeline(context: PipelineContext):
+    orders = load_orders(str(context.raw_orders_file))
     print(f"Loaded orders: {len(orders)}")
 
     valid_orders = validate_orders(orders)
@@ -28,26 +25,28 @@ def run_pipeline():
 
     save_orders(
         transformed_orders,
-        str(ORDERS_PROCESSED_FILE),
+        str(context.processed_orders_file),
     )
     print("Processed data saved successfully.")
 
     load_orders_to_database(
-        str(ORDERS_PROCESSED_FILE),
-        str(DATABASE_FILE),
+        str(context.processed_orders_file),
+        str(context.database_file),
     )
 
-    database_count = count_order_items(str(DATABASE_FILE))
+    database_count = count_order_items(
+        str(context.database_file)
+    )
     print(f"Database order items: {database_count}")
 
     load_orders_table(
         valid_orders,
-        str(DATABASE_FILE),
+        str(context.database_file),
     )
 
     generate_revenue_report(
-        str(DATABASE_FILE),
-        str(REVENUE_REPORT_FILE),
+        str(context.database_file),
+        str(context.revenue_report_file),
     )
     print("Revenue report generated successfully.")
 
@@ -55,4 +54,5 @@ def run_pipeline():
 
 
 if __name__ == "__main__":
-    run_pipeline()
+    context = create_pipeline_context()
+    run_pipeline(context)
