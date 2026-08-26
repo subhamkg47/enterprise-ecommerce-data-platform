@@ -46,8 +46,10 @@ def run_pipeline():
             f"rejected={result.records_rejected}"
         )
 
-    print("\nData pipeline completed successfully.")
-
+    if all(result.status == "success" for result in results):
+        print("\nData pipeline completed successfully.")
+    else:
+        print("\nData pipeline completed with failures.")
 
 if __name__ == "__main__":
     run_pipeline()

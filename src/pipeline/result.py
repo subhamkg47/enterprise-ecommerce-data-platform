@@ -10,3 +10,11 @@ class StageResult:
     records_rejected: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
     error: str = ""
+
+    @classmethod
+    def failure(cls, stage_name: str, error: Exception):
+        return cls(
+            stage_name=stage_name,
+            status="failed",
+            error=str(error),
+        )

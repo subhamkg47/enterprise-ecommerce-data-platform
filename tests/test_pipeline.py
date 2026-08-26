@@ -29,6 +29,7 @@ from src.pipeline.stages import (
     run_transformation,
 )
 from src.pipeline.result import StageResult
+from unittest.mock import patch
 
 
 def test_validate_orders_removes_invalid_quantity():
@@ -443,3 +444,46 @@ def test_stage_result():
     assert result.records_processed == 5
     assert result.records_rejected == 1
     assert result.error == ""
+
+
+def test_stage_result_failure():
+    error = ValueError("Invalid test data")
+
+    result = StageResult.failure("validation", error)
+
+    assert result.stage_name == "validation"
+    assert result.status == "failed"
+    assert result.error == "Invalid test data"
+    assert result.records_processed == 0
+    assert result.records_rejected == 0
+
+def test_pipeline_reports_failure(capsys):
+    failed_result = StageResult.failure(
+        "validation",
+        ValueError("Test failure"),
+    )
+
+    with patch(
+        "main.run_ingestion",
+        return_value=(
+            [],
+            StageResult(
+                stage_name="ingestion",
+                status="success",
+            ),
+        ),
+    ), patch(
+        "main.run_validation",
+        return_value=(
+            [],
+            failed_result,
+        ),
+    ):
+        from main import run_pipeline
+
+        run_pipeline()
+
+    captured = capsys.readouterr()
+
+    assert "validation: failed" in captured.out
+    assert "Data pipeline completed with failures." in captured.out
