@@ -1,4 +1,5 @@
 from src.pipeline.context import create_pipeline_context
+from src.pipeline.result import StageResult
 from src.pipeline.stages import (
     run_ingestion,
     run_validation,
@@ -8,12 +9,23 @@ from src.pipeline.stages import (
 )
 
 
+def stage_failed(result):
+    return result.status == "failed"
+
+
 def run_pipeline():
     context = create_pipeline_context()
 
     orders, ingestion_result = run_ingestion(context)
 
-    valid_orders, validation_result = run_validation(orders)
+    if stage_failed(ingestion_result):
+        valid_orders = []
+        validation_result = StageResult.failure(
+            "validation",
+            RuntimeError("Skipped because ingestion failed"),
+        )
+    else:
+        valid_orders, validation_result = run_validation(orders)
 
     transformed_orders, transformation_result = run_transformation(
         valid_orders,
